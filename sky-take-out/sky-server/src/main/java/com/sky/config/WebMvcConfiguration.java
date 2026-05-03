@@ -4,6 +4,7 @@ import com.sky.interceptor.JwtTokenAdminInterceptor;
 import com.sky.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -29,7 +30,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     @Autowired
     private JwtTokenAdminInterceptor jwtTokenAdminInterceptor;
-
+    @Value("${sky.upload.path}")
+    private String uploadPath;
     /**
      * 注册自定义拦截器
      *
@@ -62,13 +64,34 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         return docket;
     }
 
+//    /**
+//     * 设置静态资源映射
+//     * @param registry
+//     */
+//    protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
+//        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+//    }
     /**
      * 设置静态资源映射
      * @param registry
      */
+    @Override
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+        log.info("开始设置静态资源映射...");
+
+        // knife4j 接口文档资源映射
+        registry.addResourceHandler("/doc.html")
+                .addResourceLocations("classpath:/META-INF/resources/");
+
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/");
+
+        // 本地上传图片资源映射
+        // 浏览器访问：http://localhost:8080/images/xxx.jpg
+        // 实际读取：D:/cangqiong/upload/xxx.jpg
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("file:" + uploadPath);
     }
 
     /**
